@@ -10,6 +10,9 @@ env/
 .venv/
 .env/
 
+Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
 IDE specific files
 PyCharm
 .idea/
