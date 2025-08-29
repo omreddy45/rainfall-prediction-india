@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainfall Prediction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6">
+        <!-- Header Section -->
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Rainfall Forecast</h1>
+            <p class="text-gray-500 mt-2">Enter a district name to predict the seasonal rainfall.</p>
+        </div>
+
+        <!-- Input Form -->
+        <form id="rainfall-form" class="space-y-4">
+            <div>
+                <label for="district" class="text-sm font-medium text-gray-700">District Name</label>
+                <input type="text" id="district" name="district" required
+                       class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       placeholder="e.g., PUNE">
+            </div>
+            <button type="submit"
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-105">
+                Predict Rainfall
+            </button>
+        </form>
+
+        <!-- Results and Status Section -->
+        <div id="status-container" class="text-center pt-4">
+            <!-- Loader Spinner -->
+            <div id="loader" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto hidden"></div>
+
+            <!-- Error Message Box -->
+            <div id="error-message" class="mt-4 p-4 bg-red-100 text-red-700 rounded-lg hidden"></div>
+
+            <!-- Results Display -->
+            <div id="results-container" class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Forecast for <span id="result-district" class="font-bold text-blue-600"></span></h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h3 class="text-md font-medium text-gray-500">Kharif Season</h3>
+                        <p id="kharif-result" class="text-2xl font-bold text-gray-900 mt-1">-- mm</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h3 class="text-md font-medium text-gray-500">Rabi Season</h3>
+                        <p id="rabi-result" class="text-2xl font-bold text-gray-900 mt-1">-- mm</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('rainfall-form');
+        const districtInput = document.getElementById('district');
+        const loader = document.getElementById('loader');
+        const errorMessage = document.getElementById('error-message');
+        const resultsContainer = document.getElementById('results-container');
+        const resultDistrict = document.getElementById('result-district');
+        const kharifResult = document.getElementById('kharif-result');
+        const rabiResult = document.getElementById('rabi-result');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent the form from reloading the page
+
+            // Reset UI
+            loader.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+
+            const district = districtInput.value.trim();
+            if (!district) {
+                showError('Please enter a district name.');
+                return;
+            }
+
+            // The URL of your running Flask app's endpoint
+            const apiUrl = `http://127.0.0.1:5000/predict-rainfall?district=${encodeURIComponent(district)}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Handle errors from the API (e.g., district not found)
+                    throw new Error(data.error || 'An unknown error occurred.');
+                }
+
+                // If successful, display the results
+                displayResults(data);
+
+            } catch (error) {
+                // Handle network errors or other exceptions
+                showError(error.message);
+            } finally {
+                // Always hide the loader when done
+                loader.classList.add('hidden');
+            }
+        });
+
+        function displayResults(data) {
+            resultDistrict.textContent = data.district;
+            kharifResult.textContent = `${data.predicted_kharif_rainfall_mm} mm`;
+            rabiResult.textContent = `${data.predicted_rabi_rainfall_mm} mm`;
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            loader.classList.add('hidden');
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+Python bytecode and caches
+pycache/
+*.pyc
+*.pyo
+*.pyd
+
+Virtual Environments
+venv/
+env/
+.venv/
+.env/
+
+IDE specific files
+PyCharm
+.idea/
+*.iws
+*.iml
+
+VSCode
+.vscode/
+
+Build and distribution artifacts
+build/
+dist/
+*.egg-info/
+
+Log files
+*.log
+
+OS-specific files
+Windows
+Thumbs.db
